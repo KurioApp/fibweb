@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fibweb
+  labels:
+    app: fibweb
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8080
+      protocol: TCP
+      name: foward
+  selector:
+    app: fibweb
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: fibweb-deployment
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: fibweb
+    spec:
+      containers:
+        - name: fibweb
+          image: asia.gcr.io/kurio-dev/fibweb-stg
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: FIBGO_ADDR
+              value: $(FIBGO_SERVICE_HOST):$(FIBGO_SERVICE_PORT)

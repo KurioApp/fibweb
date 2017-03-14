@@ -1,25 +1,39 @@
-sudo: required
+sudo: false
 
 language: go
 
 go:
   - 1.8
 
+cache:
+  directories:
+    - "$HOME/google-cloud-sdk/"
+
 services:
   - docker
+
+env:
+  global:
+    - GOOGLE_APPLICATION_CREDENTIALS=~/gcloud-service-key.json
+    - PROJECT_NAME=kurio-dev
+    - CLUSTER_NAME_STG=fibgo-cluster-stg
+    - COMPUTE_ZONE=asia-east1-a
+    - DOCKER_IMAGE_NAME_STG=fibweb-stg
+    - KUBE_DEPLOYMENT_NAME=fibweb-deployment
+    - KUBE_DEPLOYMENT_CONTAINER_NAME=fibweb
+    - NODE_EV=CI
 
 install:
   - go get -v ./...
 
 before_script:
-  - go get github.com/mattn/goveralls
   - go get github.com/alecthomas/gometalinter
   - gometalinter --install
   - docker network create fibnet
   - docker run -d --name fibgo --network fibnet uudashr/fibgo
 
 script:
-  - go test -v -coverprofile=fibweb.coverprofile
+  - go test -v
   - gometalinter --deadline=15s
   - go install ./...
   - docker build -t fibweb .
@@ -27,13 +41,23 @@ script:
   - curl --fail http://127.0.0.1:8080 || exit 1
   - curl --fail http://127.0.0.1:8080/api/fibonacci/numbers || exit 1
 
-after_success:
-  - goveralls -coverprofile=fibweb.coverprofile -service=travis-ci
-  - if [ "$TRAVIS_BRANCH" == "master" ]; then
-      docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-      docker tag fibweb uudashr/fibweb;
-      docker push uudashr/fibweb;
+before_deploy:
+  - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then
+      rm -rf $HOME/google-cloud-sdk;
+      export CLOUDSDK_CORE_DISABLE_PROMPTS=1;
+      curl https://sdk.cloud.google.com | bash;
     fi
+  - source $HOME/google-cloud-sdk/path.bash.inc
+  - gcloud --quiet version
+  - gcloud --quiet components update
+  - gcloud --quiet components update kubectl
+
+deploy:
+  - provider: script
+    script: .travis/deploy-staging.sh
+    skip_cleanup: true
+    on:
+      branch: master
 
 after_script:
   - docker stop fibweb && docker rm -v fibweb
