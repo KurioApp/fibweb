@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/KurioApp/fibweb/internal/mocks"
 	"github.com/uudashr/fibweb"
-	"github.com/uudashr/fibweb/internal/mocks"
 )
 
 func TestNumbers_validLimit(t *testing.T) {
