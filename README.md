@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.org/uudashr/fibweb.svg?branch=master)](https://travis-ci.org/uudashr/fibweb)
-[![Coverage Status](https://coveralls.io/repos/github/uudashr/fibweb/badge.svg?branch=master)](https://coveralls.io/github/uudashr/fibweb?branch=master)
+[![Build Status](https://travis-ci.org/KurioApp/fibweb.svg?branch=master)](https://travis-ci.org/KurioApp/fibweb)
 
 # Fibweb
 This are simple client that using fibgo service
